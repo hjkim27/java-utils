@@ -24,6 +24,10 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 /**
+ * <pre>
+ *     이메일 발송
+ * </pre>
+ *
  * @author hjkim27
  * @since 0.0.1-SNAPSHOT
  */
