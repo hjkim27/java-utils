@@ -4,6 +4,10 @@ import com.hjkim27.util.mail.bean.EmailSender;
 import com.hjkim27.util.mail.exception.EmailSendException;
 
 /**
+ * <pre>
+ *     이메일 발송을 위한 {@link EmailSender} 의 인증 사용여부 관련 정보를 세팅하는 클래스
+ * </pre>
+ *
  * @author hjkim27
  * @since 0.0.1-SNAPSHOT
  */

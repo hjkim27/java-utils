@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * <pre>
+ *     이메일 발송 Util 클래스
+ * </pre>
+ *
  * @author hjkim27
  * @since 0.0.1-SNAPSHOT
  */
