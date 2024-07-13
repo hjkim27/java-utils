@@ -1,4 +1,4 @@
-package com.hjkim27.util.mail.exception;
+package com.hjkim27.exception;
 
 /**
  * @author hjkim27

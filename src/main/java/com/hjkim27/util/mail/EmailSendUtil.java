@@ -1,7 +1,7 @@
 package com.hjkim27.util.mail;
 
 import com.hjkim27.util.mail.bean.EmailSender;
-import com.hjkim27.util.mail.exception.EmailSendException;
+import com.hjkim27.exception.EmailSendException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

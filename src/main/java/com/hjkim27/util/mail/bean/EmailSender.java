@@ -1,7 +1,7 @@
 package com.hjkim27.util.mail.bean;
 
 
-import com.hjkim27.util.mail.exception.EmailSendException;
+import com.hjkim27.exception.EmailSendException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -142,7 +142,7 @@ public class EmailSender {
      *     이메일 발송
      * </pre>
      *
-     * @throws EmailSendException
+     * @throws EmailSendException 이메일 발송 과정에서 에러가 발생했을 경우
      */
     public void send() throws EmailSendException {
         try {
