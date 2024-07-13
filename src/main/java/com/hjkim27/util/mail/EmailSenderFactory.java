@@ -1,7 +1,7 @@
 package com.hjkim27.util.mail;
 
 import com.hjkim27.util.mail.bean.EmailSender;
-import com.hjkim27.util.mail.exception.EmailSendException;
+import com.hjkim27.exception.EmailSendException;
 
 /**
  * <pre>
@@ -20,10 +20,10 @@ public class EmailSenderFactory {
      *
      * @param sslEnable ssl 사용여부
      * @param tlsEnable tls 사용여부
-     * @return
+     * @return {@link EmailSender}
      * @throws EmailSendException
      */
-    public static final EmailSender createSimpleSmtp(
+    public static EmailSender createSimpleSmtp(
             final Boolean sslEnable, final Boolean tlsEnable
     ) throws EmailSendException {
         if (sslEnable && tlsEnable) {
@@ -44,9 +44,9 @@ public class EmailSenderFactory {
      *     인증 없이 이메일 발송
      * </pre>
      *
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender simpleSmtpWithoutAuth() {
+    public static EmailSender simpleSmtpWithoutAuth() {
         return simpleSmtpWithoutAuth(EmailSender.DEFAULT_PORT);
     }
 
@@ -56,9 +56,9 @@ public class EmailSenderFactory {
      * </pre>
      *
      * @param port 메일서버 port
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender simpleSmtpWithoutAuth(final int port) {
+    public static EmailSender simpleSmtpWithoutAuth(final int port) {
         return EmailSender.builder()
                 .smtpPort(port)
                 .authEnable(false).sslEnable(false).tlsEnable(false)
@@ -70,9 +70,9 @@ public class EmailSenderFactory {
      *     이메일발송 ssl 인증 사용
      * </pre>
      *
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender defaultSSLSmtp() {
+    public static EmailSender defaultSSLSmtp() {
         return defaultSSLSmtp(EmailSender.DEFAULT_SSL_PORT);
     }
 
@@ -82,9 +82,9 @@ public class EmailSenderFactory {
      * </pre>
      *
      * @param port 메일서버 port
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender defaultSSLSmtp(final int port) {
+    public static EmailSender defaultSSLSmtp(final int port) {
         return EmailSender.builder()
                 .smtpPort(port)
                 .authEnable(true).sslEnable(true).tlsEnable(false)
@@ -96,9 +96,9 @@ public class EmailSenderFactory {
      *     이메일발송 tls 인증 사용
      * </pre>
      *
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender defaultSTARTTLSSmtp() {
+    public static EmailSender defaultSTARTTLSSmtp() {
         return defaultSTARTTLSSmtp(EmailSender.DEFAULT_TLS_PORT);
     }
 
@@ -108,9 +108,9 @@ public class EmailSenderFactory {
      * </pre>
      *
      * @param port 메일서버 port
-     * @return
+     * @return {@link EmailSender}
      */
-    public static final EmailSender defaultSTARTTLSSmtp(final int port) {
+    public static EmailSender defaultSTARTTLSSmtp(final int port) {
         return EmailSender.builder()
                 .smtpPort(port)
                 .authEnable(true).sslEnable(false).tlsEnable(true)
