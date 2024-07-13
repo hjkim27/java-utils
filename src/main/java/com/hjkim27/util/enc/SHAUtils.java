@@ -1,7 +1,9 @@
 package com.hjkim27.util.enc;
 
+import com.hjkim27.exception.EncodingException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -17,7 +19,10 @@ import java.security.SecureRandom;
  * @author hjkim27
  * @since 0.0.1-SNAPSHOT
  */
+@Slf4j
 public class SHAUtils {
+
+    private static SHATypeFormatEnum DEFAULT_TYPE = SHATypeFormatEnum.SHA_256;
 
     /**
      * <pre>
@@ -40,78 +45,109 @@ public class SHAUtils {
      *     setting salt enable
      * </pre>
      *
-     * @param str     Encrypted target String
-     * @param type    SHA_256 / SHA_512
-     * @param useSalt salt enable
-     * @return Encrypted String
-     * @throws NoSuchAlgorithmException Algorithm that does not exist
+     * @param str            Encrypted target String
+     * @param useSalt        salt enable
+     * @param typeFormatEnum {@link SHATypeFormatEnum}
+     * @return
+     * @throws EncodingException Exception occurs during Encrypt
      */
-    protected static String getShaEncrypt(String str, String type, boolean useSalt) throws NoSuchAlgorithmException {
-        SHATypeFormatEnum typeFormat = SHATypeFormatEnum.valueOf(type);
-
-        if (typeFormat != null) {
-            MessageDigest md = MessageDigest.getInstance(typeFormat.type);
+    protected static String encrypt(String str, boolean useSalt, SHATypeFormatEnum typeFormatEnum) throws EncodingException {
+        if (typeFormatEnum == null) {
+            log.warn("shaEncrypt type is null >> setting default Type : {}", DEFAULT_TYPE);
+            typeFormatEnum = DEFAULT_TYPE;
+        }
+        try {
+            MessageDigest md = MessageDigest.getInstance(typeFormatEnum.type);
             md.update(str.getBytes());
             if (useSalt) {
                 md.update(getSalt().getBytes());
             }
-            return String.format(typeFormat.format, new BigInteger(1, md.digest()));
-        } else {
-            return null;
+            return String.format(typeFormatEnum.format, new BigInteger(1, md.digest()));
+        } catch (NoSuchAlgorithmException e) {
+            log.warn("Algorithm that does not exist : {}", typeFormatEnum.type);
+            throw new EncodingException(e);
         }
     }
 
     /**
      * <pre>
-     *     SHA-256 Encrypt
+     *     Optionally set SHA-256, SHA-512 encryption methods
+     *     setting salt enable
      * </pre>
      *
-     * @param str Encrypted target String
+     * @param str     Encrypted target String
+     * @param useSalt salt enable
+     * @param type    SHA Encrypt Type in {@link SHATypeFormatEnum#values()}
      * @return Encrypted String
-     * @throws NoSuchAlgorithmException Algorithm that does not exist
+     * @throws EncodingException Exception occurs during Encrypt
      */
-    public static String get256Encrypt(String str) throws NoSuchAlgorithmException {
-        return getShaEncrypt(str, "SHA_256", false);
+    protected static String encrypt(String str, boolean useSalt, String type) throws EncodingException {
+        SHATypeFormatEnum typeFormat = SHATypeFormatEnum.valueOf(type);
+        return encrypt(str, useSalt, typeFormat);
+
     }
 
     /**
      * <pre>
-     *     SHA-256 Encrypt with Salt String
+     *     SHA encrypt without salt
+     *     Optionally set SHA-256, SHA-512 encryption methods
      * </pre>
      *
-     * @param str Encrypted target String
-     * @return Encrypted String
-     * @throws NoSuchAlgorithmException Algorithm that does not exist
+     * @param str            Encrypt target String
+     * @param typeFormatEnum {@link SHATypeFormatEnum}
+     * @return
+     * @throws EncodingException Exception occurs during Encrypt
      */
-    public static String get256EncryptWithSalt(String str) throws NoSuchAlgorithmException {
-        return getShaEncrypt(str, "SHA_256", true);
+    public static String encrypt(String str, SHATypeFormatEnum typeFormatEnum) throws EncodingException {
+        return encrypt(str, false, typeFormatEnum);
     }
 
     /**
      * <pre>
-     *     SHA-512 Encrypt
+     *     SHA encrypt with salt
+     *     Optionally set SHA-256, SHA-512 encryption methods
      * </pre>
      *
-     * @param str Encrypted target String
-     * @return Encrypted String
-     * @throws NoSuchAlgorithmException Algorithm that does not exist
+     * @param str            Encrypt target String
+     * @param typeFormatEnum {@link SHATypeFormatEnum}
+     * @return
+     * @throws EncodingException Exception occurs during Encrypt
      */
-    public static String get512Encrypt(String str) throws NoSuchAlgorithmException {
-        return getShaEncrypt(str, "SHA_512", false);
+    public static String encryptWithSalt(String str, SHATypeFormatEnum typeFormatEnum) throws EncodingException {
+        return encrypt(str, true, typeFormatEnum);
+    }
+
+
+    /**
+     * <pre>
+     *     SHA encrypt without salt
+     *     Optionally set SHA-256, SHA-512 encryption methods
+     * </pre>
+     *
+     * @param str  Encrypt target String
+     * @param type SHA Encrypt Type in {@link SHATypeFormatEnum#values()}
+     * @return
+     * @throws EncodingException Exception occurs during Encrypt
+     */
+    public static String encrypt(String str, String type) throws EncodingException {
+        return encrypt(str, false, type);
     }
 
     /**
      * <pre>
-     *     SHA-512 Encrypt with Salt String
+     *     SHA encrypt with salt
+     *     Optionally set SHA-256, SHA-512 encryption methods
      * </pre>
      *
-     * @param str Encrypted target String
-     * @return Encrypted String
-     * @throws NoSuchAlgorithmException Algorithm that does not exist
+     * @param str  Encrypt target String
+     * @param type SHA Encrypt Type in {@link SHATypeFormatEnum#values()}
+     * @return
+     * @throws EncodingException Exception occurs during Encrypt
      */
-    public static String get512EncryptWithSalt(String str) throws NoSuchAlgorithmException {
-        return getShaEncrypt(str, "SHA_512", true);
+    public static String encryptWithSalt(String str, String type) throws EncodingException {
+        return encrypt(str, true, type);
     }
+
 
     /**
      * <pre>
