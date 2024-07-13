@@ -1,4 +1,4 @@
-package com.hjkim27.util.enc.exception;
+package com.hjkim27.exception;
 
 public class EncodingException extends Exception {
 

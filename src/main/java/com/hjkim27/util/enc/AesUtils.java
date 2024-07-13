@@ -1,6 +1,8 @@
 package com.hjkim27.util.enc;
 
-import com.hjkim27.util.enc.exception.EncodingException;
+import com.hjkim27.exception.EncodingException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
@@ -12,20 +14,32 @@ import java.security.spec.AlgorithmParameterSpec;
 /**
  * <pre>
  *     AES256Util
- *     암호화/복호화 과정에서 동일한 키를 사용하는 대칭 키 알고리즘
+ *     - Symmetric key algorithms using the same key during encryption/decryption
  * </pre>
  *
  * @author hjkim27
- * @date 2024. 07. 11
  * @since 0.0.1-SNAPSHOT
  */
 @Slf4j
 public class AesUtils {
+
+    // AES 암호호 알고리즘
+    // 암호 운용방식 : CBC모드
+    // 패딩 기법 : PKCS5
     protected static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
     protected static final String AES = "AES";
     protected static final String UTF_8 = StandardCharsets.UTF_8.name();
+    protected static final String SECRET_KEY = "42673e967095443ab5856396b4ea51a8";
 
-
+    /**
+     * <pre>
+     *   generate private key
+     * </pre>
+     *
+     * @param key
+     * @return
+     * @throws EncodingException
+     */
     protected static byte[] generateIvFromString(final String key) throws EncodingException {
         if (key == null) {
             throw new EncodingException("key:string is null");
@@ -41,13 +55,13 @@ public class AesUtils {
 
     /**
      * <pre>
-     *     AES256 암/복호화 parameter validation
+     *     parameter validation
      * </pre>
      *
-     * @param str 암/복호화 대상 문자열
-     * @param key string(32)
-     * @param iv  byte[16]
-     * @throws EncodingException
+     * @param str Encrypt/Decrypt target String
+     * @param key key
+     * @param iv  {@link #generateIvFromString(String)}
+     * @throws EncodingException exist null value among input parameter or iv length does not 16
      */
     protected static void validateParam(final String str, final String key, final byte[] iv) throws EncodingException {
         if (str == null) {
@@ -68,14 +82,14 @@ public class AesUtils {
 
     /**
      * <pre>
-     *     AES256 복호화
+     *     AES256 Decrypt
      * </pre>
      *
-     * @param str 대상 문자열
+     * @param str Decrypted target String
      * @param key string(32)
-     * @param iv  byte[16]
-     * @return 복호화된 string
-     * @throws EncodingException
+     * @param iv  {@link #generateIvFromString(String)}
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
      */
     public static String decrypt(final String str, final String key, final byte[] iv) throws EncodingException {
         try {
@@ -103,13 +117,13 @@ public class AesUtils {
 
     /**
      * <pre>
-     *     AES256 복호화 : iv from key 사용
+     *     AES256 Decrypt
      * </pre>
      *
-     * @param str 대상 문자열
+     * @param str Decrypted target String
      * @param key string(32)
-     * @return 복호화된 string
-     * @throws EncodingException
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
      */
     public static String decrypt(String str, final String key) throws EncodingException {
         return decrypt(str, key, generateIvFromString(key));
@@ -117,14 +131,14 @@ public class AesUtils {
 
     /**
      * <pre>
-     *      암호화
+     *      AES256 Encrypt
      * </pre>
      *
-     * @param str 대상 문자열
+     * @param str Encrypted target String
      * @param key string(32)
-     * @param iv  byte[16]
-     * @return 암호화된 string
-     * @throws EncodingException
+     * @param iv  {@link #generateIvFromString(String)}
+     * @return Encrypted String
+     * @throws EncodingException Error occurs during encryption
      */
     public static String encrypt(final String str, final String key, final byte[] iv) throws EncodingException {
         try {
@@ -151,13 +165,13 @@ public class AesUtils {
 
     /**
      * <pre>
-     *     AES256 복ㅎ화 : iv fron key 사용
+     *     AES256 Encrypt
      * </pre>
      *
-     * @param str 대상 문자열
+     * @param str Encrypted target String
      * @param key string(32)
-     * @return 암호화된 string
-     * @throws EncodingException
+     * @return Encrypted String
+     * @throws EncodingException Error occurs during encryption
      */
     public static String encrypt(final String str, final String key) throws EncodingException {
         return encrypt(str, key, generateIvFromString(str));
