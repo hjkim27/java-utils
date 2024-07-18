@@ -23,13 +23,21 @@ import java.security.spec.AlgorithmParameterSpec;
 @Slf4j
 public class AesUtils {
 
-    // AES 암호호 알고리즘
-    // 암호 운용방식 : CBC모드
-    // 패딩 기법 : PKCS5
+    /**
+     * <pre>
+     *     AES 암호호 알고리즘
+     *     암호 운용방식 : CBC모드
+     *     패딩 기법 : PKCS5
+     * </pre>
+     */
     protected static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
     protected static final String AES = "AES";
     protected static final String UTF_8 = StandardCharsets.UTF_8.name();
-    protected static final String SECRET_KEY = "42673e967095443ab5856396b4ea51a8";
+
+    /**
+     * default secret key
+     */
+    protected static final String DEFAULT_SECRET_KEY = "HeYjInKiM27!@#$6789";
 
     /**
      * <pre>
@@ -82,20 +90,24 @@ public class AesUtils {
 
     /**
      * <pre>
-     *     AES256 Decrypt
+     *     Optionally set AES-128, AES-192, AES-256 encryption methods
      * </pre>
      *
-     * @param str Decrypted target String
-     * @param key string(32)
-     * @param iv  {@link #generateIvFromString(String)}
-     * @return Decrypted string
+     * @param str            Decrypted target String
+     * @param key            using generate secret key
+     * @param iv             {@link #generateIvFromString(String)}
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return
      * @throws EncodingException Error occurs during decryption
      */
-    public static String decrypt(final String str, final String key, final byte[] iv) throws EncodingException {
+    public static String decrypt(final String str, final String key, final byte[] iv, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
         try {
             validateParam(str, key, iv);
+            if (typeFormatEnum == null) {
+                throw new EncodingException("does not exist type in AES-128/AES-192/AES-256");
+            }
 
-            String secretKey = key.substring(0, 32);
+            String secretKey = key.substring(0, typeFormatEnum.byteLength);
             byte[] textBytes = Base64Utils.decode(str);
 
             AlgorithmParameterSpec ivSpec = new IvParameterSpec(iv);
@@ -120,31 +132,99 @@ public class AesUtils {
      *     AES256 Decrypt
      * </pre>
      *
-     * @param str Decrypted target String
-     * @param key string(32)
+     * @param str  Decrypted target String
+     * @param key  string(32)
+     * @param iv   {@link #generateIvFromString(String)}
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
      * @return Decrypted string
      * @throws EncodingException Error occurs during decryption
      */
-    public static String decrypt(String str, final String key) throws EncodingException {
-        return decrypt(str, key, generateIvFromString(key));
+    public static String decrypt(final String str, final String key, final byte[] iv, final String type) throws EncodingException {
+        AESTypeFormatEnum typeFormat = AESTypeFormatEnum.valueOf(type);
+        return decrypt(str, key, iv, typeFormat);
     }
 
     /**
      * <pre>
-     *      AES256 Encrypt
+     *     AES256 Decrypt
      * </pre>
      *
-     * @param str Encrypted target String
-     * @param key string(32)
-     * @param iv  {@link #generateIvFromString(String)}
-     * @return Encrypted String
+     * @param str            Decrypted target String
+     * @param key            string(32)
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
+     */
+    public static String decrypt(final String str, final String key, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
+        return decrypt(str, key, generateIvFromString(key), typeFormatEnum);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Decrypt
+     * </pre>
+     *
+     * @param str  Decrypted target String
+     * @param key  string(32)
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
+     */
+    public static String decrypt(final String str, final String key, final String type) throws EncodingException {
+        return decrypt(str, key, generateIvFromString(key), type);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Decrypt
+     *     using default secret key
+     * </pre>
+     *
+     * @param str            Decrypted target String
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
+     */
+    public static String decrypt(final String str, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
+        return decrypt(str, DEFAULT_SECRET_KEY, typeFormatEnum);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Decrypt
+     *     using default secret key
+     * </pre>
+     *
+     * @param str  Decrypted target String
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
+     * @return Decrypted string
+     * @throws EncodingException Error occurs during decryption
+     */
+    public static String decrypt(final String str, final String type) throws EncodingException {
+        return decrypt(str, DEFAULT_SECRET_KEY, type);
+    }
+
+
+    /*======================================================*/
+
+
+    /**
+     * <pre>
+     *     Optionally set AES-128, AES-192, AES-256 encryption methods
+     * </pre>
+     *
+     * @param str            Encrypted target String
+     * @param key            using generate secret key
+     * @param iv             {@link #generateIvFromString(String)}
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return
      * @throws EncodingException Error occurs during encryption
      */
-    public static String encrypt(final String str, final String key, final byte[] iv) throws EncodingException {
+    public static String encrypt(final String str, final String key, final byte[] iv, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
         try {
             validateParam(str, key, iv);
 
-            String secretKey = key.substring(0, 32);
+            String secretKey = key.substring(0, typeFormatEnum.byteLength);
             byte[] textBytes = str.getBytes(UTF_8);
 
             AlgorithmParameterSpec ivSpec = new IvParameterSpec(iv);
@@ -168,12 +248,91 @@ public class AesUtils {
      *     AES256 Encrypt
      * </pre>
      *
-     * @param str Encrypted target String
-     * @param key string(32)
-     * @return Encrypted String
+     * @param str  Encrypted target String
+     * @param key  string(32)
+     * @param iv   {@link #generateIvFromString(String)}
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
+     * @return Encrypted string
      * @throws EncodingException Error occurs during encryption
      */
-    public static String encrypt(final String str, final String key) throws EncodingException {
-        return encrypt(str, key, generateIvFromString(str));
+    public static String encrypt(final String str, final String key, final byte[] iv, final String type) throws EncodingException {
+        AESTypeFormatEnum typeFormat = AESTypeFormatEnum.valueOf(type);
+        return encrypt(str, key, iv, typeFormat);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Encrypt
+     * </pre>
+     *
+     * @param str            Encrypted target String
+     * @param key            string(32)
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return Encrypted string
+     * @throws EncodingException Error occurs during encryption
+     */
+    public static String encrypt(final String str, final String key, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
+        return encrypt(str, key, generateIvFromString(key), typeFormatEnum);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Encrypt
+     * </pre>
+     *
+     * @param str  Encrypted target String
+     * @param key  string(32)
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
+     * @return Encrypted string
+     * @throws EncodingException Error occurs during encryption
+     */
+    public static String encrypt(final String str, final String key, final String type) throws EncodingException {
+        return encrypt(str, key, generateIvFromString(key), type);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Encrypt
+     *     using default secret key
+     * </pre>
+     *
+     * @param str            Encrypted target String
+     * @param typeFormatEnum {@link AESTypeFormatEnum}
+     * @return Encrypt string
+     * @throws EncodingException Error occurs during encryption
+     */
+    public static String encrypt(final String str, final AESTypeFormatEnum typeFormatEnum) throws EncodingException {
+        return encrypt(str, DEFAULT_SECRET_KEY, typeFormatEnum);
+    }
+
+    /**
+     * <pre>
+     *     AES256 Encrypt
+     *     using default secret key
+     * </pre>
+     *
+     * @param str  Encrypted target String
+     * @param type AES Encrypt Type in {@link AESTypeFormatEnum#values()}
+     * @return Encrypted string
+     * @throws EncodingException Error occurs during encryption
+     */
+    public static String encrypt(final String str, final String type) throws EncodingException {
+        return encrypt(str, DEFAULT_SECRET_KEY, type);
+    }
+
+
+    /**
+     * <pre>
+     * setting AES Encrypt type, format
+     * </pre>
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum AESTypeFormatEnum {
+        AES_128(16),
+        AES_192(24),
+        AES_256(32);
+
+        final int byteLength;
     }
 }

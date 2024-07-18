@@ -161,7 +161,8 @@ public class SHAUtils {
     @Getter
     @AllArgsConstructor
     public enum SHATypeFormatEnum {
-        SHA_256("SHA-256", "%02x"), SHA_512("SHA-512", "%0128x");
+        SHA_256("SHA-256", "%02x"),
+        SHA_512("SHA-512", "%0128x");
 
         final String type;
         final String format;
