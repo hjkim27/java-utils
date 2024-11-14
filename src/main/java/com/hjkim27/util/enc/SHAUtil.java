@@ -19,7 +19,7 @@ import java.security.SecureRandom;
  * @since 0.0.1-SNAPSHOT
  */
 @Slf4j
-public class SHAUtils {
+public class SHAUtil {
 
     /**
      * <pre>
@@ -32,7 +32,7 @@ public class SHAUtils {
         SecureRandom secureRandom = new SecureRandom();
         byte[] salt = new byte[20];
         secureRandom.nextBytes(salt);
-        return new String(Base64Utils.encode(salt));
+        return new String(Base64Util.encode(salt));
     }
 
 

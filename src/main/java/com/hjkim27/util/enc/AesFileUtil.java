@@ -5,12 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.spec.AlgorithmParameterSpec;
 
 /**
  * <pre>
@@ -22,7 +20,7 @@ import java.security.spec.AlgorithmParameterSpec;
  * @since 0.0.1-SNAPSHOT
  */
 @Slf4j
-public class AesFileUtils {
+public class AesFileUtil {
 
     protected static final String AES = "AES";
     protected static final String UTF_8 = StandardCharsets.UTF_8.name();

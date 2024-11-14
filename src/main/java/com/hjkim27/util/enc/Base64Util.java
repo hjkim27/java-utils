@@ -18,7 +18,7 @@ import java.util.Base64;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class Base64Utils {
+public class Base64Util {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 

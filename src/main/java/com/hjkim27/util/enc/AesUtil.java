@@ -21,7 +21,7 @@ import java.security.spec.AlgorithmParameterSpec;
  * @since 0.0.1-SNAPSHOT
  */
 @Slf4j
-public class AesUtils {
+public class AesUtil {
 
     /**
      * <pre>
@@ -108,7 +108,7 @@ public class AesUtils {
             }
 
             String secretKey = key.substring(0, typeFormatEnum.byteLength);
-            byte[] textBytes = Base64Utils.decode(str);
+            byte[] textBytes = Base64Util.decode(str);
 
             AlgorithmParameterSpec ivSpec = new IvParameterSpec(iv);
             SecretKeySpec newKey = new SecretKeySpec(secretKey.getBytes(UTF_8), AES);
@@ -234,7 +234,7 @@ public class AesUtils {
             cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
             byte[] bytes = cipher.doFinal(textBytes);
 
-            return Base64Utils.encodeToString(bytes);
+            return Base64Util.encodeToString(bytes);
         } catch (EncodingException e) {
             throw e;
         } catch (Exception e) {

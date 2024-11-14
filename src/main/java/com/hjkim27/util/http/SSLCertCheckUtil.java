@@ -14,7 +14,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 
 @Slf4j
-public class SSLCertCheckUtils {
+public class SSLCertCheckUtil {
 
     static final String https = "https://";
 

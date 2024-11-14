@@ -8,11 +8,11 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UrlEncodingUtils {
+public class UrlEncodingUtil {
 
     public static byte[] decode(byte[] origin) {
         try {
-            return Base64Utils.DECODER.decode(origin);
+            return Base64Util.DECODER.decode(origin);
         } catch (RuntimeException e) {
             if (log.isDebugEnabled()) {
                 log.error(e.getMessage(), e);
@@ -25,7 +25,7 @@ public class UrlEncodingUtils {
 
     public static byte[] decode(String origin) {
         try {
-            return Base64Utils.DECODER.decode(origin.getBytes(StandardCharsets.UTF_8));
+            return Base64Util.DECODER.decode(origin.getBytes(StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
@@ -70,7 +70,7 @@ public class UrlEncodingUtils {
 
     public static byte[] encode(byte[] origin) {
         try {
-            return Base64Utils.ENCODER.encode(origin);
+            return Base64Util.ENCODER.encode(origin);
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class UrlEncodingUtils {
 
     public static byte[] encode(String origin) {
         try {
-            return Base64Utils.ENCODER.encode(origin.getBytes(StandardCharsets.UTF_8));
+            return Base64Util.ENCODER.encode(origin.getBytes(StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
