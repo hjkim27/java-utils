@@ -126,9 +126,9 @@ public class SystemInfoExtractor {
         final boolean old = (now - uptimeCheckTime) > uptimeCheckInterval;
 
         log.debug("------------------------------------------------------------------------------");
-        log.debug("uptimeProcessLine = " + uptimeProcessLine);
-        log.debug("now = " + now + "  " + "uptimeCheckTime = " + uptimeCheckTime + "  " + "old = " + old);
-        log.debug("uptimeUpIdx = " + uptimeUpIdx + "  " + "uptimeUserIdx = " + uptimeUserIdx + "  " + "uptimeLoadAvgIdx = " + uptimeLoadAvgIdx);
+        log.debug("uptimeProcessLine = {}", uptimeProcessLine);
+        log.debug("now = {}  uptimeCheckTime = {}  old = {}", now, uptimeCheckTime, old);
+        log.debug("uptimeUpIdx = {}  uptimeUserIdx = {}  uptimeLoadAvgIdx = {}", uptimeUpIdx, uptimeUserIdx, uptimeLoadAvgIdx);
 
         if (old) {
             uptimeCheckTime = now;
@@ -136,12 +136,12 @@ public class SystemInfoExtractor {
             try {
                 line = ProcessExecutor.runSimpleCommand("uptime");
 
-                log.debug("new uptimeProcessLine = " + uptimeProcessLine);
+                log.debug("new uptimeProcessLine = {}", uptimeProcessLine);
 
             } catch (IOException | InterruptedException e) {
-                log.warn(e + " | " + e.getMessage());
+                log.warn(e.getMessage(), e);
             } catch (Exception e) {
-                log.warn(e + " | " + e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
 
             if (line.length() > 4) {
@@ -181,7 +181,7 @@ public class SystemInfoExtractor {
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            log.error(e.getMessage());
+            log.warn(e.getMessage(), e);
             ip = getIpAddress();
         }
         if (ip == null || ip.trim().equals("127.0.0.1")) {
@@ -218,7 +218,7 @@ public class SystemInfoExtractor {
                 }
             }
         } catch (SocketException e) {
-            log.error(e.getMessage());
+            log.warn(e.getMessage(), e);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -263,9 +263,9 @@ public class SystemInfoExtractor {
 
             }
         } catch (IOException | InterruptedException e) {
-            log.warn(e + " " + e.getMessage());
+            log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e + " " + e.getMessage());
+            log.error(e.getMessage(), e);
         }
 
         return fileSystemInfoList;
@@ -314,14 +314,22 @@ public class SystemInfoExtractor {
                 cpuList = new ArrayList<>(cpuSet.values());
 
             } catch (NullPointerException e) {
-                log.warn(e + "  " + e.getMessage());
+                log.warn(e.getMessage(), e);
             } catch (Exception e) {
-                log.warn(e + "  " + e.getMessage(), e);
+                if (log.isDebugEnabled()) {
+                    log.error(e.getMessage(), e);
+                } else {
+                    log.warn(e.getMessage(), e);
+                }
             }
         } catch (IOException e) {
-            log.warn(e + "  " + e.getMessage());
+            log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e + "  " + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return cpuList;
     }

@@ -40,7 +40,11 @@ public class Base64Util {
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return new byte[0];
     }
@@ -72,7 +76,11 @@ public class Base64Util {
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return null;
     }
@@ -103,7 +111,11 @@ public class Base64Util {
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return new byte[0];
     }
@@ -134,7 +146,11 @@ public class Base64Util {
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return null;
     }

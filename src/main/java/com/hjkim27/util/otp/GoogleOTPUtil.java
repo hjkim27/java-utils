@@ -89,9 +89,9 @@ public class GoogleOTPUtil {
                 }
             }
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error(e + " | " + e.getMessage());
+            log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e + " | " + e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         return result;
     }

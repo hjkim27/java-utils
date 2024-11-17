@@ -117,16 +117,20 @@ public class NetworkInterfaceInfo {
                     NetworkInterfaceInfo networkInterfaceInfo = new NetworkInterfaceInfo(ni);
                     networkInterfaceInfoList.add(networkInterfaceInfo);
                 } catch (NetworkInterfaceParseException e) {
-                    log.warn("NetworkInterfaceParseException | " + e.getMessage());
+                    log.warn("NetworkInterfaceParseException | {}", e.getMessage());
                 } catch (Exception e) {
                     log.warn(e + "  " + e.getMessage());
                 }
 
             }
         } catch (SocketException e1) {
-            log.error(e1.getMessage());
-        } catch (Exception e1) {
-            log.error(e1.getMessage());
+            log.warn(e1.getMessage());
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
         return networkInterfaceInfoList;
     }

@@ -59,7 +59,7 @@ public class NetworkIpInfo extends RetryIntervalUtils {
             urlConnection.setReadTimeout(readTimeout);
             urlConnection.setRequestProperty("Accept", "application/json;");
 
-            log.debug("connect to => " + IP_GET_URL);
+            log.debug("connect to => {}", IP_GET_URL);
 
             if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
@@ -71,9 +71,13 @@ public class NetworkIpInfo extends RetryIntervalUtils {
                 }
             }
         } catch (RuntimeException e) {
-            log.error(e + "  " + e.getMessage());
+            log.warn(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e + "  " + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         } finally {
             try {
                 if (isr != null) {
@@ -94,15 +98,15 @@ public class NetworkIpInfo extends RetryIntervalUtils {
                     urlConnection.disconnect();
                 }
             } catch (RuntimeException e) {
-                log.error(e + "  " + e.getMessage());
+                log.warn(e.getMessage(), e);
             } catch (Exception e) {
-                log.error(e + "  " + e.getMessage());
+                log.error(e.getMessage(), e);
             }
         }
 
         final String body = buffer.toString();
 
-        log.debug("ip body == " + body);
+        log.debug("ip body == {}", body);
 
         JsonObject jsonObject = JsonParser.parseString(body).getAsJsonObject();
 

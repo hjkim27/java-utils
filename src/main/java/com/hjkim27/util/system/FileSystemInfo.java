@@ -33,9 +33,13 @@ public class FileSystemInfo {
             percent = token.nextToken();
             mounted = token.nextToken();
         } catch (NoSuchElementException e) {
-            log.error("NoSuchElementException | " + e.getMessage());
+            log.warn("NoSuchElementException | {}", e.getMessage());
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.error(e.getMessage(), e);
+            } else {
+                log.warn(e.getMessage(), e);
+            }
         }
     }
 }

@@ -249,10 +249,14 @@ public class EmailSender {
             Transport.send(message);
 
         } catch (FileNotFoundException e) {
-            log.error("fail attachFile ... file not found : {}", e.getMessage());
+            log.warn("fail attachFile ... file not found : {}", e.getMessage());
             throw new EmailSendException("attach file not found " + e.getMessage() + " || " + e);
         } catch (Exception e) {
-            log.error("fail emailSend ... title : {} | {}", title, e);
+            if (log.isDebugEnabled()) {
+                log.error("fail emailSend ... title : {} | {}", title, e);
+            } else {
+                log.warn("fail emailSend ... title : {} | {}", title, e);
+            }
             throw new EmailSendException(e);
         }
     }

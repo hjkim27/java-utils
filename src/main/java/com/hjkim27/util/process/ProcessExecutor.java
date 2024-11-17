@@ -100,15 +100,15 @@ public class ProcessExecutor {
         InputStream is1 = null;
         InputStream is2 = null;
 
-        List<String> standardOutput = new ArrayList<>();
-        List<String> errorOutput = new ArrayList<>();
+        List<String> standardOut = new ArrayList<>();
+        List<String> errorOut = new ArrayList<>();
 
         try {
             if (command == null || command.length == 0) {
                 throw new NullPointerException("exec command is null");
             }
 
-            log.debug("run command : " + new Gson().toJson(command));
+            log.debug("run command : {}", new Gson().toJson(command));
 
             if (command.length == 1) {
                 process = Runtime.getRuntime().exec(command[0]);
@@ -130,44 +130,44 @@ public class ProcessExecutor {
                 String line = null;
 
                 while ((line = stdReader.readLine()) != null) {
-                    standardOutput.add(line);
+                    standardOut.add(line);
                 }
 
                 line = null;
                 while ((line = errReader.readLine()) != null) {
-                    errorOutput.add(line);
+                    errorOut.add(line);
                 }
 
             }
 
             process.waitFor();
-            log.debug("exitValue : " + process.exitValue());
+            log.debug("exitValue : {}", process.exitValue());
             if (process.exitValue() != 0) {
                 throw new IOException("Exit Code is not normal");
             }
 
             if (log.isDebugEnabled()) {
-                for (String s : standardOutput) {
+                for (String s : standardOut) {
                     log.debug(s);
                 }
             }
 
         } catch (InterruptedException e) {
-            log.error("InterruptedException", e);
-            for (String s : errorOutput) {
-                log.warn("\t" + s);
+            log.warn(e.getMessage(), e);
+            for (String s : errorOut) {
+                log.warn("\t{}", s);
             }
             throw e;
         } catch (IOException e) {
-            log.error("IOException", e);
-            for (String s : errorOutput) {
-                log.warn("\t" + s);
+            log.warn(e.getMessage(), e);
+            for (String s : errorOut) {
+                log.warn("\t{}", s);
             }
             throw new IOException(e);
         } catch (Exception e) {
             log.error("Unexpected Error", e);
-            for (String s : errorOutput) {
-                log.warn("\t" + s);
+            for (String s : errorOut) {
+                log.warn("\t{}", s);
             }
             throw new IOException(e);
         } finally {
@@ -182,7 +182,7 @@ public class ProcessExecutor {
             }
         }
 
-        return standardOutput;
+        return standardOut;
     }
 
 

@@ -142,10 +142,10 @@ public class SSLCertCheckUtil {
 
         } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             // Here you may check which subclass of CertificateException to know what the error is.
-            log.error(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
             throw new CertificateException(e);
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
             throw new CertificateException(e);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

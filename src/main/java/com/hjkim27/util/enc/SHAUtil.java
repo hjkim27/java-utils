@@ -65,7 +65,11 @@ public class SHAUtil {
                 }
                 return String.format(typeFormat.format, new BigInteger(1, md.digest()));
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                if (log.isDebugEnabled()) {
+                    log.error(e.getMessage(), e);
+                } else {
+                    log.warn(e.getMessage(), e);
+                }
                 throw new EncodingException(e);
             }
         } else {
