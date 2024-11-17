@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -93,12 +92,6 @@ public class ProcessExecutor {
     public static List<String> runCommand(String[] command) throws IOException, InterruptedException {
 
         Process process = null;
-        BufferedReader stdReader = null;
-        BufferedReader errReader = null;
-        InputStreamReader inputReader = null;
-        InputStreamReader errorReader = null;
-        InputStream is1 = null;
-        InputStream is2 = null;
 
         List<String> standardOut = new ArrayList<>();
         List<String> errorOut = new ArrayList<>();
@@ -117,27 +110,25 @@ public class ProcessExecutor {
             }
 
             if (process != null) {
+                try (
+                        InputStream is1 = process.getInputStream();
+                        InputStream is2 = process.getErrorStream();
+                        InputStreamReader inputReader = new InputStreamReader(is1);
+                        InputStreamReader errorReader = new InputStreamReader(is2);
+                        BufferedReader stdReader = new BufferedReader(inputReader);
+                        BufferedReader errReader = new BufferedReader(errorReader);
+                ) {
+                    String line = null;
 
-                is1 = process.getInputStream();
-                is2 = process.getErrorStream();
+                    while ((line = stdReader.readLine()) != null) {
+                        standardOut.add(line);
+                    }
 
-                inputReader = new InputStreamReader(is1);
-                errorReader = new InputStreamReader(is2);
-
-                stdReader = new BufferedReader(inputReader);
-                errReader = new BufferedReader(errorReader);
-
-                String line = null;
-
-                while ((line = stdReader.readLine()) != null) {
-                    standardOut.add(line);
+                    line = null;
+                    while ((line = errReader.readLine()) != null) {
+                        errorOut.add(line);
+                    }
                 }
-
-                line = null;
-                while ((line = errReader.readLine()) != null) {
-                    errorOut.add(line);
-                }
-
             }
 
             process.waitFor();
@@ -171,12 +162,6 @@ public class ProcessExecutor {
             }
             throw new IOException(e);
         } finally {
-            IOUtils.closeQuietly(is1);
-            IOUtils.closeQuietly(is2);
-            IOUtils.closeQuietly(inputReader);
-            IOUtils.closeQuietly(errorReader);
-            IOUtils.closeQuietly(stdReader);
-            IOUtils.closeQuietly(errReader);
             if (process != null) {
                 process.destroy();
             }

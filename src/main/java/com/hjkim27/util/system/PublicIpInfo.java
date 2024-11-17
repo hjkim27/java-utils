@@ -27,9 +27,7 @@ public class PublicIpInfo extends RetryIntervalUtils {
         URL url = null;
         String readLine = null;
         StringBuilder buffer = new StringBuilder();
-        BufferedReader bufferedReader = null;
         HttpURLConnection urlConnection = null;
-        InputStreamReader isr = null;
         int connTimeout = 5000;
         int readTimeout = 3000;
         try {
@@ -44,11 +42,13 @@ public class PublicIpInfo extends RetryIntervalUtils {
 
             if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
-                isr = new InputStreamReader(urlConnection.getInputStream(), "UTF-8");
-
-                bufferedReader = new BufferedReader(isr);
-                while ((readLine = bufferedReader.readLine()) != null) {
-                    buffer.append(readLine).append("\n");
+                try (
+                        InputStreamReader isr = new InputStreamReader(urlConnection.getInputStream(), "UTF-8");
+                        BufferedReader bufferedReader = new BufferedReader(isr);
+                ) {
+                    while ((readLine = bufferedReader.readLine()) != null) {
+                        buffer.append(readLine).append("\n");
+                    }
                 }
             }
         } catch (RuntimeException e) {
@@ -60,20 +60,6 @@ public class PublicIpInfo extends RetryIntervalUtils {
                 log.warn(e.getMessage(), e);
             }
         } finally {
-            try {
-                if (isr != null) {
-                    isr.close();
-                }
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            }
-            try {
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            }
             try {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
