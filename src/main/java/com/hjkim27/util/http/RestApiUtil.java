@@ -21,6 +21,7 @@ import org.apache.http.ssl.TrustStrategy;
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -158,7 +159,24 @@ public class RestApiUtil {
     /**
      * <pre>
      *     REST API POST :: MULTIPART_FORM_DATA
-     *     - requestConfig 세팅 추가
+     *     - pararmeter data만 전달할 경우
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runPost(
+            String url
+            , Map<String, String> headerMap
+            , HttpMultipartMode multipartMode
+            , Map<String, Object> paramMap
+    ) {
+        return runPost(url, headerMap, multipartMode, null, paramMap);
+    }
+
+    /**
+     * <pre>
+     *     REST API POST :: MULTIPART_FORM_DATA
+     *     - 기본설정
      * </pre>
      *
      * @param url
@@ -175,7 +193,34 @@ public class RestApiUtil {
             , Map<String, byte[]> binaryMap
             , Map<String, Object> paramMap
     ) {
-        return runPost(url, headerMap, multipartMode, binaryMap, paramMap, null, false);
+        return runPost(url, headerMap, multipartMode, binaryMap, paramMap, null, false, null);
+    }
+
+    /**
+     * <pre>
+     *     REST API POST :: MULTIPART_FORM_DATA
+     *     - charset 제외 설정
+     * </pre>
+     *
+     * @param url
+     * @param headerMap            header info Map
+     * @param multipartMode        HttpMultipartMode
+     * @param binaryMap            image byte Map
+     * @param requestConfig        requestConfig
+     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @param paramMap             parameter Map
+     * @return
+     */
+    public static CloseableHttpResponse runPost(
+            String url
+            , Map<String, String> headerMap
+            , HttpMultipartMode multipartMode
+            , Map<String, byte[]> binaryMap
+            , Map<String, Object> paramMap
+            , RequestConfig requestConfig
+            , boolean useConnectionManager
+    ) {
+        return runPost(url, headerMap, multipartMode, binaryMap, paramMap, requestConfig, useConnectionManager, null);
     }
 
     /**
@@ -191,6 +236,7 @@ public class RestApiUtil {
      * @param paramMap             parameter Map
      * @param requestConfig        requestConfig
      * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @param charset              인코딩사용 시 설정
      * @return
      */
     public static CloseableHttpResponse runPost(
@@ -201,6 +247,7 @@ public class RestApiUtil {
             , Map<String, Object> paramMap
             , RequestConfig requestConfig
             , boolean useConnectionManager
+            , String charset
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
@@ -236,7 +283,19 @@ public class RestApiUtil {
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
                     String key = entry.getKey();
                     Object value = entry.getValue();
-                    builder.addTextBody(key, String.valueOf(value), ContentType.MULTIPART_FORM_DATA);
+
+                    // charset
+                    if (charset == null || charset.isEmpty()) {
+                        builder.addTextBody(key, String.valueOf(value), ContentType.MULTIPART_FORM_DATA);
+                    } else {
+                        // supported check
+                        if (Charset.isSupported(charset)) {
+                            log.warn("is not supported charset!!!");
+                            builder.addTextBody(key, String.valueOf(value), ContentType.MULTIPART_FORM_DATA);
+                        } else {
+                            builder.addTextBody(key, String.valueOf(value), ContentType.create(ContentType.MULTIPART_FORM_DATA.getMimeType(), charset));
+                        }
+                    }
                 }
             }
 
