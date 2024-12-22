@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -305,6 +306,61 @@ public class RestApiUtil {
             }
 
             post.setEntity(builder.build());
+
+            response = client.execute(post);
+            log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
+        } catch (ClientProtocolException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+        }
+        return response;
+    }
+
+    /**
+     * <pre>
+     *     REST API POST :: JSON
+     * </pre>
+     *
+     * @param url
+     * @param headerMap            header info Map
+     * @param jsonData             parameterData :: jsonString
+     * @param requestConfig        requestConfig
+     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @return
+     */
+    public static CloseableHttpResponse runPostJSON(
+            String url
+            , Map<String, String> headerMap
+            , String jsonData
+            , RequestConfig requestConfig
+            , boolean useConnectionManager
+    ) {
+        CloseableHttpClient client = null;
+        CloseableHttpResponse response = null;
+        try {
+            client = getClient(url, useConnectionManager);
+            HttpPost post = new HttpPost(url);
+
+            // header
+            if (headerMap != null) {
+                for (Map.Entry<String, String> entry : headerMap.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    post.setHeader(key, value);
+                }
+            }
+
+            // requestConfig
+            if (requestConfig != null) {
+                post.setConfig(requestConfig);
+            }
+
+            // jsonData
+            post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
 
             response = client.execute(post);
             log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
