@@ -237,7 +237,7 @@ public class RestApiUtil {
      * @param paramMap             parameter Map
      * @param requestConfig        requestConfig
      * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
-     * @param charset              인코딩사용 시 설정
+     * @param charset              인코딩 사용 시 설정
      * @return
      */
     public static CloseableHttpResponse runPost(
@@ -323,6 +323,7 @@ public class RestApiUtil {
     /**
      * <pre>
      *     REST API POST :: JSON
+     *     - charset 제외 설정
      * </pre>
      *
      * @param url
@@ -338,6 +339,30 @@ public class RestApiUtil {
             , String jsonData
             , RequestConfig requestConfig
             , boolean useConnectionManager
+    ) {
+        return runPostJSON(url, headerMap, jsonData, requestConfig, useConnectionManager, null);
+    }
+
+    /**
+     * <pre>
+     *     REST API POST :: JSON
+     * </pre>
+     *
+     * @param url
+     * @param headerMap            header info Map
+     * @param jsonData             parameterData :: jsonString
+     * @param requestConfig        requestConfig
+     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @param charset              인코딩 사용 시 설정
+     * @return
+     */
+    public static CloseableHttpResponse runPostJSON(
+            String url
+            , Map<String, String> headerMap
+            , String jsonData
+            , RequestConfig requestConfig
+            , boolean useConnectionManager
+            , String charset
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
@@ -361,6 +386,19 @@ public class RestApiUtil {
 
             // jsonData
             post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
+
+            // charset
+            if (charset == null || charset.isEmpty()) {
+                post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
+            } else {
+                // supported check
+                if (Charset.isSupported(charset)) {
+                    log.warn("is not supported charset!!!");
+                    post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
+                } else {
+                    post.setEntity(new StringEntity(jsonData, ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), charset)));
+                }
+            }
 
             response = client.execute(post);
             log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
