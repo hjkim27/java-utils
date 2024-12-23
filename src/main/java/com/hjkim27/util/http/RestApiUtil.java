@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -16,6 +17,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 
@@ -28,6 +30,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -398,6 +402,74 @@ public class RestApiUtil {
                 } else {
                     post.setEntity(new StringEntity(jsonData, ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), charset)));
                 }
+            }
+
+            response = client.execute(post);
+            log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
+        } catch (ClientProtocolException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+        }
+        return response;
+    }
+
+    /**
+     * <pre>
+     *     REST API POST :: x-www-form-urlencoded
+     * </pre>
+     *
+     * @param url
+     * @param headerMap            header info Map
+     * @param paramMap             parameter Map
+     * @param requestConfig        requestConfig
+     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @param charset              인코딩 사용 시 설정
+     * @return
+     */
+    public static CloseableHttpResponse runPostNameValuePair(
+            String url
+            , Map<String, String> headerMap
+            , Map<String, Object> paramMap
+            , RequestConfig requestConfig
+            , boolean useConnectionManager
+            , String charset
+    ) {
+        CloseableHttpClient client = null;
+        CloseableHttpResponse response = null;
+        UrlEncodedFormEntity formEntity = null;
+
+        try {
+            client = getClient(url, useConnectionManager);
+            HttpPost post = new HttpPost(url);
+
+            // header
+            if (headerMap != null) {
+                for (Map.Entry<String, String> entry : headerMap.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    post.setHeader(key, value);
+                }
+            }
+
+            // parameters
+            List<BasicNameValuePair> paramList = new ArrayList<>();
+            if (paramMap != null) {
+                for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    paramList.add(new BasicNameValuePair(key, String.valueOf(value)));
+                }
+            }
+            formEntity = new UrlEncodedFormEntity(paramList);
+            post.setEntity(formEntity);
+
+            // requestConfig
+            if (requestConfig != null) {
+                post.setConfig(requestConfig);
             }
 
             response = client.execute(post);
