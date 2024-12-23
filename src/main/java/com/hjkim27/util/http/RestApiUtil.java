@@ -516,4 +516,31 @@ public class RestApiUtil {
         }
         return response;
     }
+
+    /**
+     * <pre>
+     * parameterType 이 query 인 값들을 받아 url을 생성한다.
+     * </pre>
+     *
+     * @param url           url
+     * @param queryParamMap query parameter map
+     * @return url?key=value&key=value...
+     * @since 2024.12
+     */
+    public static String generateURLUsingQueryParam(String url, Map<String, Object> queryParamMap) {
+        if (queryParamMap != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(url);
+            boolean isFirst = true;
+            for (Map.Entry<String, Object> entry : queryParamMap.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                sb.append((isFirst) ? "?" : "&");
+                sb.append(key).append("=").append(value);
+                isFirst = false;
+            }
+            url = sb.toString();
+        }
+        return url;
+    }
 }
