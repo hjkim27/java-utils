@@ -25,12 +25,14 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -417,6 +419,23 @@ public class RestApiUtil {
         return response;
     }
 
+
+    /**
+     * <pre>
+     *     REST API POST :: x-www-form-urlencoded
+     * </pre>
+     *
+     * @param url
+     * @param paramMap             parameter map
+     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
+     * @return
+     */
+    public static CloseableHttpResponse runPostNameValuePair(String url, Map<String, Object> paramMap, boolean useConnectionManager) {
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("Content-type", ContentType.APPLICATION_FORM_URLENCODED.toString());
+        return runPostNameValuePair(url, headerMap, paramMap, null, useConnectionManager, StandardCharsets.UTF_8.toString());
+    }
+
     /**
      * <pre>
      *     REST API POST :: x-www-form-urlencoded
@@ -464,7 +483,20 @@ public class RestApiUtil {
                     paramList.add(new BasicNameValuePair(key, String.valueOf(value)));
                 }
             }
-            formEntity = new UrlEncodedFormEntity(paramList);
+
+            // charset
+            if (charset == null || charset.isEmpty()) {
+                formEntity = new UrlEncodedFormEntity(paramList);
+            } else {
+                // supported check
+                if (Charset.isSupported(charset)) {
+                    log.warn("is not supported charset!!!");
+                    formEntity = new UrlEncodedFormEntity(paramList);
+                } else {
+                    formEntity = new UrlEncodedFormEntity(paramList, charset);
+                }
+            }
+
             post.setEntity(formEntity);
 
             // requestConfig
