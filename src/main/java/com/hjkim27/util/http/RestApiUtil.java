@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
@@ -23,16 +21,15 @@ import org.apache.http.ssl.TrustStrategy;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +64,7 @@ public class RestApiUtil {
      * @throws KeyStoreException
      * @throws KeyManagementException
      */
-    public static CloseableHttpClient getClient(String url, boolean useConnectionManager) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    protected static CloseableHttpClient getClient(String url, boolean useConnectionManager) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         log.info("URL ===== {}", url);
 
         HttpClientBuilder clientBuilder = HttpClients.custom();
@@ -94,6 +91,93 @@ public class RestApiUtil {
 
     /**
      * <pre>
+     * parameterType 이 query 인 값들을 받아 url을 생성한다.
+     * </pre>
+     *
+     * @param url           url
+     * @param queryParamMap query parameter map
+     * @return url?key=value&key=value...
+     * @since 2024.12
+     */
+    public static String generateURLUsingQueryParam(String url, Map<String, Object> queryParamMap) {
+        if (queryParamMap != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(url);
+            boolean isFirst = true;
+            for (Map.Entry<String, Object> entry : queryParamMap.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                sb.append((isFirst) ? "?" : "&");
+                sb.append(key).append("=").append(value);
+                isFirst = false;
+            }
+            url = sb.toString();
+        }
+        return url;
+    }
+
+
+    /* multipart/form-data ========== */
+
+
+    /**
+     * <pre>
+     *     multipart/form-data HEAD
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runHead(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormData(url, headerMap, paramMap, null, false, HttpRequestMethod.HEAD);
+    }
+
+    /**
+     * <pre>
+     *     multipart/form-data DELETE
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runDelete(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormData(url, headerMap, paramMap, null, false, HttpRequestMethod.DELETE);
+    }
+
+    /**
+     * <pre>
+     *     multipart/form-data OPTIONS
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runOptions(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormData(url, headerMap, paramMap, null, false, HttpRequestMethod.OPTIONS);
+    }
+
+    /**
+     * <pre>
+     *     multipart/form-data TRACE
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runTrace(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormData(url, headerMap, paramMap, null, false, HttpRequestMethod.TRACE);
+    }
+
+    /**
+     * <pre>
+     *     multipart/form-data GET
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runGet(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormData(url, headerMap, paramMap, null, false, HttpRequestMethod.GET);
+    }
+
+
+    /**
+     * <pre>
      *     REST API GET
      * </pre>
      *
@@ -104,12 +188,13 @@ public class RestApiUtil {
      * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
      * @return
      */
-    public static CloseableHttpResponse runGet(
+    public static CloseableHttpResponse sendFormData(
             String url
             , Map<String, String> headerMap
             , Map<String, Object> paramMap
             , RequestConfig requestConfig
             , boolean useConnectionManager
+            , HttpRequestMethod method
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
@@ -118,6 +203,7 @@ public class RestApiUtil {
 
             // parameter
             HttpGet get = null;
+            URI uri = null;
             if (paramMap != null) {
                 URIBuilder uriBuilder = new URIBuilder(url);
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
@@ -125,10 +211,31 @@ public class RestApiUtil {
                     Object value = entry.getValue();
                     uriBuilder.addParameter(key, String.valueOf(value));
                 }
-                get = new HttpGet(uriBuilder.build());
+                uri = uriBuilder.build();
             } else {
-                get = new HttpGet(url);
+                uri = URI.create(url);
             }
+
+            HttpRequestBase request = null;
+            switch (method) {
+                case HEAD:
+                    request = new HttpHead(uri);
+                    break;
+                case DELETE:
+                    request = new HttpDelete(uri);
+                    break;
+                case OPTIONS:
+                    request = new HttpOptions(uri);
+                    break;
+                case TRACE:
+                    request = new HttpTrace(uri);
+                    break;
+                case GET:
+                default:
+                    request = new HttpGet(uri);
+                    break;
+            }
+
 
             // header
             if (headerMap != null) {
@@ -165,69 +272,35 @@ public class RestApiUtil {
 
     /**
      * <pre>
-     *     REST API POST :: MULTIPART_FORM_DATA
-     *     - pararmeter data만 전달할 경우
+     *     multipart/form-data PUT
      * </pre>
      *
      * @return
      */
-    public static CloseableHttpResponse runPost(
-            String url
-            , Map<String, String> headerMap
-            , HttpMultipartMode multipartMode
-            , Map<String, Object> paramMap
-    ) {
-        return runPost(url, headerMap, multipartMode, null, paramMap);
+    public static CloseableHttpResponse runPut(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormDataWithEntity(url, headerMap, multipartMode, null, paramMap, null, false, charset, HttpRequestMethod.PUT);
     }
 
     /**
      * <pre>
-     *     REST API POST :: MULTIPART_FORM_DATA
-     *     - 기본설정
+     *     multipart/form-data PATCH
      * </pre>
      *
-     * @param url
-     * @param headerMap     header info Map
-     * @param multipartMode HttpMultipartMode
-     * @param binaryMap     image byte Map
-     * @param paramMap      parameter Map
      * @return
      */
-    public static CloseableHttpResponse runPost(
-            String url
-            , Map<String, String> headerMap
-            , HttpMultipartMode multipartMode
-            , Map<String, byte[]> binaryMap
-            , Map<String, Object> paramMap
-    ) {
-        return runPost(url, headerMap, multipartMode, binaryMap, paramMap, null, false, null);
+    public static CloseableHttpResponse runPatch(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormDataWithEntity(url, headerMap, multipartMode, null, paramMap, null, false, charset, HttpRequestMethod.PATCH);
     }
 
     /**
      * <pre>
-     *     REST API POST :: MULTIPART_FORM_DATA
-     *     - charset 제외 설정
+     *     multipart/form-data POST
      * </pre>
      *
-     * @param url
-     * @param headerMap            header info Map
-     * @param multipartMode        HttpMultipartMode
-     * @param binaryMap            image byte Map
-     * @param requestConfig        requestConfig
-     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
-     * @param paramMap             parameter Map
      * @return
      */
-    public static CloseableHttpResponse runPost(
-            String url
-            , Map<String, String> headerMap
-            , HttpMultipartMode multipartMode
-            , Map<String, byte[]> binaryMap
-            , Map<String, Object> paramMap
-            , RequestConfig requestConfig
-            , boolean useConnectionManager
-    ) {
-        return runPost(url, headerMap, multipartMode, binaryMap, paramMap, requestConfig, useConnectionManager, null);
+    public static CloseableHttpResponse runPost(String url, Map<String, String> headerMap, HttpMultipartMode multipartMode, Map<String, Object> paramMap, String charset) {
+        return sendFormDataWithEntity(url, headerMap, multipartMode, null, paramMap, null, false, charset, HttpRequestMethod.POST);
     }
 
     /**
@@ -246,7 +319,7 @@ public class RestApiUtil {
      * @param charset              인코딩 사용 시 설정
      * @return
      */
-    public static CloseableHttpResponse runPost(
+    public static CloseableHttpResponse sendFormDataWithEntity(
             String url
             , Map<String, String> headerMap
             , HttpMultipartMode multipartMode
@@ -255,19 +328,33 @@ public class RestApiUtil {
             , RequestConfig requestConfig
             , boolean useConnectionManager
             , String charset
+            , HttpRequestMethod method
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
         try {
             client = getClient(url, useConnectionManager);
-            HttpPost post = new HttpPost(url);
+
+            HttpEntityEnclosingRequestBase request = null;
+            switch (method) {
+                case PUT:
+                    request = new HttpPut();
+                    break;
+                case PATCH:
+                    request = new HttpPatch();
+                    break;
+                case POST:
+                default:
+                    request = new HttpPost();
+                    break;
+            }
 
             // header
             if (headerMap != null) {
                 for (Map.Entry<String, String> entry : headerMap.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    post.setHeader(key, value);
+                    request.setHeader(key, value);
                 }
             }
 
@@ -308,12 +395,12 @@ public class RestApiUtil {
 
             // requestConfig
             if (requestConfig != null) {
-                post.setConfig(requestConfig);
+                request.setConfig(requestConfig);
             }
 
-            post.setEntity(builder.build());
+            request.setEntity(builder.build());
 
-            response = client.execute(post);
+            response = client.execute(request);
             log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
@@ -325,28 +412,42 @@ public class RestApiUtil {
         }
         return response;
     }
+    /* /multipart/form-data ========== */
+
+
+    /* JSON ========== */
 
     /**
      * <pre>
-     *     REST API POST :: JSON
-     *     - charset 제외 설정
+     *     JSON PUT
      * </pre>
      *
-     * @param url
-     * @param headerMap            header info Map
-     * @param jsonData             parameterData :: jsonString
-     * @param requestConfig        requestConfig
-     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
      * @return
      */
-    public static CloseableHttpResponse runPostJSON(
-            String url
-            , Map<String, String> headerMap
-            , String jsonData
-            , RequestConfig requestConfig
-            , boolean useConnectionManager
-    ) {
-        return runPostJSON(url, headerMap, jsonData, requestConfig, useConnectionManager, null);
+    public static CloseableHttpResponse runPUTJson(String url, Map<String, String> headerMap, String jsonData) {
+        return sendJsonWithEntity(url, headerMap, jsonData, null, false, null, HttpRequestMethod.PUT);
+    }
+
+    /**
+     * <pre>
+     *     JSON PATCH
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runPATCHJson(String url, Map<String, String> headerMap, String jsonData) {
+        return sendJsonWithEntity(url, headerMap, jsonData, null, false, null, HttpRequestMethod.PATCH);
+    }
+
+    /**
+     * <pre>
+     *     JSON POST
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runPOSTJson(String url, Map<String, String> headerMap, String jsonData) {
+        return sendJsonWithEntity(url, headerMap, jsonData, null, false, null, HttpRequestMethod.POST);
     }
 
     /**
@@ -362,51 +463,65 @@ public class RestApiUtil {
      * @param charset              인코딩 사용 시 설정
      * @return
      */
-    public static CloseableHttpResponse runPostJSON(
+    public static CloseableHttpResponse sendJsonWithEntity(
             String url
             , Map<String, String> headerMap
             , String jsonData
             , RequestConfig requestConfig
             , boolean useConnectionManager
             , String charset
+            , HttpRequestMethod method
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
         try {
             client = getClient(url, useConnectionManager);
-            HttpPost post = new HttpPost(url);
+
+            HttpEntityEnclosingRequestBase request = null;
+            switch (method) {
+                case PUT:
+                    request = new HttpPut();
+                    break;
+                case PATCH:
+                    request = new HttpPatch();
+                    break;
+                case POST:
+                default:
+                    request = new HttpPost();
+                    break;
+            }
 
             // header
+            request.setHeader("Content-type", ContentType.APPLICATION_JSON.toString());
             if (headerMap != null) {
                 for (Map.Entry<String, String> entry : headerMap.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    post.setHeader(key, value);
+                    request.setHeader(key, value);
                 }
             }
 
             // requestConfig
             if (requestConfig != null) {
-                post.setConfig(requestConfig);
+                request.setConfig(requestConfig);
             }
 
-            // jsonData
-            post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
-
             // charset
-            if (charset == null || charset.isEmpty()) {
-                post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
-            } else {
-                // supported check
-                if (Charset.isSupported(charset)) {
-                    log.warn("is not supported charset!!!");
-                    post.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
+            if (jsonData != null) {
+                if (charset == null || charset.isEmpty()) {
+                    request.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
                 } else {
-                    post.setEntity(new StringEntity(jsonData, ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), charset)));
+                    // supported check
+                    if (Charset.isSupported(charset)) {
+                        log.warn("is not supported charset!!!");
+                        request.setEntity(new StringEntity(jsonData, ContentType.APPLICATION_JSON));
+                    } else {
+                        request.setEntity(new StringEntity(jsonData, ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), charset)));
+                    }
                 }
             }
 
-            response = client.execute(post);
+            response = client.execute(request);
             log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
@@ -419,21 +534,42 @@ public class RestApiUtil {
         return response;
     }
 
+    /* /JSON ========== */
+
+
+    /* x-www-form-urlencoded ========== */
 
     /**
      * <pre>
-     *     REST API POST :: x-www-form-urlencoded
+     *     x-www-form-urlencoded    PUT
      * </pre>
      *
-     * @param url
-     * @param paramMap             parameter map
-     * @param useConnectionManager PoolingHttpClientConnectionManager 사용여부
      * @return
      */
-    public static CloseableHttpResponse runPostNameValuePair(String url, Map<String, Object> paramMap, boolean useConnectionManager) {
-        Map<String, String> headerMap = new HashMap<>();
-        headerMap.put("Content-type", ContentType.APPLICATION_FORM_URLENCODED.toString());
-        return runPostNameValuePair(url, headerMap, paramMap, null, useConnectionManager, StandardCharsets.UTF_8.toString());
+    public static CloseableHttpResponse runPUTNameValuePair(String url, Map<String, String> headerMap, Map<String, Object> paramMap) {
+        return sendNameValuePairWithEntity(url, headerMap, paramMap, null, false, null, HttpRequestMethod.PUT);
+    }
+
+    /**
+     * <pre>
+     *     x-www-form-urlencoded    PATCH
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runPATCHNameValuePair(String url, Map<String, String> headerMap, Map<String, Object> paramMap) {
+        return sendNameValuePairWithEntity(url, headerMap, paramMap, null, false, null, HttpRequestMethod.PATCH);
+    }
+
+    /**
+     * <pre>
+     *     x-www-form-urlencoded    POST
+     * </pre>
+     *
+     * @return
+     */
+    public static CloseableHttpResponse runPOSTNameValuePair(String url, Map<String, String> headerMap, Map<String, Object> paramMap) {
+        return sendNameValuePairWithEntity(url, headerMap, paramMap, null, false, null, HttpRequestMethod.POST);
     }
 
     /**
@@ -449,28 +585,43 @@ public class RestApiUtil {
      * @param charset              인코딩 사용 시 설정
      * @return
      */
-    public static CloseableHttpResponse runPostNameValuePair(
+    public static CloseableHttpResponse sendNameValuePairWithEntity(
             String url
             , Map<String, String> headerMap
             , Map<String, Object> paramMap
             , RequestConfig requestConfig
             , boolean useConnectionManager
             , String charset
+            , HttpRequestMethod method
     ) {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
         UrlEncodedFormEntity formEntity = null;
 
         try {
-            client = getClient(url, useConnectionManager);
-            HttpPost post = new HttpPost(url);
+            client = RestApiUtil.getClient(url, useConnectionManager);
+
+            HttpEntityEnclosingRequestBase request = null;
+            switch (method) {
+                case PUT:
+                    request = new HttpPut();
+                    break;
+                case PATCH:
+                    request = new HttpPatch();
+                    break;
+                case POST:
+                default:
+                    request = new HttpPost();
+                    break;
+            }
 
             // header
+            request.setHeader("Content-type", ContentType.APPLICATION_FORM_URLENCODED.toString());
             if (headerMap != null) {
                 for (Map.Entry<String, String> entry : headerMap.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    post.setHeader(key, value);
+                    request.setHeader(key, value);
                 }
             }
 
@@ -497,14 +648,14 @@ public class RestApiUtil {
                 }
             }
 
-            post.setEntity(formEntity);
+            request.setEntity(formEntity);
 
             // requestConfig
             if (requestConfig != null) {
-                post.setConfig(requestConfig);
+                request.setConfig(requestConfig);
             }
 
-            response = client.execute(post);
+            response = client.execute(request);
             log.info("{} ## HttpStatus {}", url, response.getStatusLine().getStatusCode());
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);
@@ -516,31 +667,6 @@ public class RestApiUtil {
         }
         return response;
     }
+    /* /x-www-form-urlencoded ========== */
 
-    /**
-     * <pre>
-     * parameterType 이 query 인 값들을 받아 url을 생성한다.
-     * </pre>
-     *
-     * @param url           url
-     * @param queryParamMap query parameter map
-     * @return url?key=value&key=value...
-     * @since 2024.12
-     */
-    public static String generateURLUsingQueryParam(String url, Map<String, Object> queryParamMap) {
-        if (queryParamMap != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(url);
-            boolean isFirst = true;
-            for (Map.Entry<String, Object> entry : queryParamMap.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                sb.append((isFirst) ? "?" : "&");
-                sb.append(key).append("=").append(value);
-                isFirst = false;
-            }
-            url = sb.toString();
-        }
-        return url;
-    }
 }
