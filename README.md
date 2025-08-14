@@ -6,7 +6,7 @@
 - `pom.xml` 파일에 다음과 같이 `<dependency>` 태그를 추가하여 의존성을 지정할 수 있음
 
 ```xml
-<!-- library 추가 -->
+<!-- java-utils 추가 -->
 <dependency>
     <groupId>hjkim27.dev.lib</groupId>
     <artifactId>java-utils</artifactId>
